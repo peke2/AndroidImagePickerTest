@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.content.Intent;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.widget.Button;
 import android.view.View;
 import android.net.Uri;
@@ -78,27 +79,15 @@ public class MainActivity extends AppCompatActivity {
         Uri uri = data.getData();
         System.out.println(String.format("mylog:画像パス[%s]", uri.toString()));
 
-        String id = DocumentsContract.getDocumentId(uri);
-        String[] ids = id.split(":");
-        String sid = ids[ids.length-1];
-
-//        Cursor csr = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, "_id=?", new String[]{sid}, null);
-        Cursor csr = getContentResolver().query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            new String[]{MediaStore.Images.Media.DATA},
-            "_id=?",
-            new String[]{sid},
-                null
-        );
+        String[] columns = new String[]{MediaStore.Images.Media.SIZE};
+        Cursor csr = getContentResolver().query(uri, columns, null,null,null);
 
         if( csr.moveToFirst() ){
-            String str = csr.getString(0);
-            System.out.println(str);
+            int sizeIndex = csr.getColumnIndex(MediaStore.Images.Media.SIZE);
             ImageView img = (ImageView)findViewById(R.id.imageView);
             img.setImageURI(uri);
 
-            File file = new File(str);
-            int size = (int)file.length();
+            int size = csr.getInt(sizeIndex);
             byte[] buffer = new byte[size];
 
             // targetSdkVersion29 + Android10 で権限エラーで読み込めないパターン
